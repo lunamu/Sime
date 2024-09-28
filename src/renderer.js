@@ -10,9 +10,15 @@ messageForm.addEventListener('submit', async (e) => {
   showLoading();
   
   try {
+    console.log('发送消息:', message);
     const response = await window.electronAPI.sendMessage(message);
+    console.log('收到响应:', response);
+    if (response === undefined) {
+      throw new Error('收到的响应是 undefined');
+    }
     displayResponse(response);
   } catch (error) {
+    console.error('错误:', error);
     displayError(error.message);
   }
 });
@@ -22,12 +28,16 @@ function showLoading() {
 }
 
 function displayResponse(text) {
-  responseDiv.innerHTML = `
-    <div class="response-container">
-      <h3>回复：</h3>
-      <div class="response-text">${formatText(text)}</div>
-    </div>
-  `;
+  if (text === undefined || text === null) {
+    responseDiv.innerHTML = '<div class="error-container"><h3>错误：</h3><div class="error-text">收到的响应是空的</div></div>';
+  } else {
+    responseDiv.innerHTML = `
+      <div class="response-container">
+        <h3>回复：</h3>
+        <div class="response-text">${formatText(text)}</div>
+      </div>
+    `;
+  }
 }
 
 function displayError(errorMessage) {
@@ -40,5 +50,8 @@ function displayError(errorMessage) {
 }
 
 function formatText(text) {
-  // 将换行符转换为 HTML
+  if (typeof text !== 'string') {
+    return JSON.stringify(text);
+  }
+  return text.replace(/\n/g, '<br>');
 }
